@@ -1,0 +1,75 @@
+{
+  // Run and Debug panel (Ctrl+Shift+D): set a breakpoint, pick a configuration, press F5.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug tests",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build tests",
+      "program": "/home/agent/.artifacts/bin/CodingAgent.Tests/debug/CodingAgent.Tests.dll",
+      "args": ["-method", "*${input:tests}*"],
+      "cwd": "/home/agent/.artifacts/bin/CodingAgent.Tests/debug",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug agent: run-agent --coder",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build agent",
+      "program": "/home/agent/.artifacts/bin/CodingAgent/debug/CodingAgent.dll",
+      "args": ["--coder"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug agent: run-agent --plan",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build agent",
+      "program": "/home/agent/.artifacts/bin/CodingAgent/debug/CodingAgent.dll",
+      "args": ["--plan"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug agent: run-agent",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build agent",
+      "program": "/home/agent/.artifacts/bin/CodingAgent/debug/CodingAgent.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ],
+  "inputs": [
+    {
+      // The same names as the "Test:" comments above each TODO method.
+      "id": "tests",
+      "type": "pickString",
+      "description": "Which tests?",
+      "options": [
+        "Todo1_ResolveInWorkspace",
+        "Todo1_ReadFile",
+        "Todo1_Description",
+        "Todo2_WriteFile",
+        "Todo2_Description",
+        "Todo3_RunAgent",
+        "Todo3_Code",
+        "Todo3_Prompt",
+        "Todo4_Truncate",
+        "Todo4_RunTests",
+        "Todo4_RunCommand",
+        "Todo4_Description",
+        "Todo4_Code",
+        "Todo5_Plan",
+        "Todo5_Prompt",
+        "Todo6_ReviewChanges",
+        "Todo6_ParseVerdict",
+        "Todo6_Prompt",
+        "Todo7_Run"
+      ]
+    }
+  ]
+}

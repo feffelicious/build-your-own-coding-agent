@@ -1,0 +1,39 @@
+{
+  // Run and Debug panel (Ctrl+Shift+D): set a breakpoint, pick a configuration, press F5.
+  // Each one starts the program paused (see tasks.json) and then attaches to it.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug tests",
+      "type": "java",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005,
+      "preLaunchTask": "tests: wait for debugger"
+    },
+    {
+      "name": "Debug agent: run-agent --coder",
+      "type": "java",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005,
+      "preLaunchTask": "agent --coder: wait for debugger"
+    },
+    {
+      "name": "Debug agent: run-agent --plan",
+      "type": "java",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005,
+      "preLaunchTask": "agent --plan: wait for debugger"
+    },
+    {
+      "name": "Debug agent: run-agent",
+      "type": "java",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005,
+      "preLaunchTask": "agent: wait for debugger"
+    }
+  ]
+}

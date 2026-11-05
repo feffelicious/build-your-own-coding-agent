@@ -1,0 +1,18 @@
+.env
+bin/
+obj/
+target/
+__pycache__/
+*.pyc
+.pytest_cache/
+.vs/
+.vscode/
+# ...except the debug configurations shipped in each track's app folder.
+!*/app/.vscode/
+.idea/
+*.user
+logs/
+.checkpoint-verify/
+.compare-tracks/
+.artifacts/
+.claude/

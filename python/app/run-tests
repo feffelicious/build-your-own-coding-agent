@@ -1,0 +1,6 @@
+#!/bin/sh
+# Runs the tests for every TODO (1-7). TODO 3 and 5-7 use a scripted model: no API key needed.
+#   run-tests                    all tests
+#   run-tests -k todo1           only the tests for TODO 1
+# -P: never import from the current folder (run from /workspace, the agent's files would win).
+exec python3 -P -m pytest -p no:cacheprovider "$(dirname "$0")/../app-tests" "$@"

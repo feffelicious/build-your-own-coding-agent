@@ -1,0 +1,5 @@
+#!/bin/sh
+# Runs the tests for every TODO (1-7). TODO 3 and 5-7 use a scripted model: no API key needed.
+#   run-tests                       all tests
+#   run-tests -Dtest='*#todo1*'     only the tests for TODO 1
+mvn -q -o -f "$(dirname "$0")/../app-tests/pom.xml" test "$@" && echo "All selected tests passed."

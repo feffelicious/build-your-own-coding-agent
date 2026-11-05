@@ -1,0 +1,4 @@
+# Everything is checked out with LF so container scripts work from a Windows clone.
+* text=auto eol=lf
+*.png binary
+*.jar binary
