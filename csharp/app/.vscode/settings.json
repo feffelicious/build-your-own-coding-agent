@@ -1,0 +1,10 @@
+// Shared by all tracks: edit tools/shared/app/.vscode/settings.json in the authoring repo, not this copy.
+{
+  // You write the agent yourself today: no AI chat or completions.
+  "chat.disableAIFeatures": true,
+  // Java: no prompts to upgrade the JDK or dependencies (the course pins them).
+  // The C# and Python extensions ignore it.
+  "java.dependency.enableDependencyCheckup": false,
+  // Java (Red Hat): no usage data, and no prompt asking for it.
+  "redhat.telemetry.enabled": false
+}

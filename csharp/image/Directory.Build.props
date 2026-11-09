@@ -1,0 +1,7 @@
+<!-- Baked into the image at /home/agent. Keeps build output out of the mounted
+     app folders (faster on Windows and macOS, and nothing to clean up on the host). -->
+<Project>
+  <PropertyGroup>
+    <ArtifactsPath>/home/agent/.artifacts</ArtifactsPath>
+  </PropertyGroup>
+</Project>

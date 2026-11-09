@@ -1,0 +1,86 @@
+{
+  // Run and Debug panel (Ctrl+Shift+D): set a breakpoint, pick a configuration, press F5.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["-p", "no:cacheprovider", "/home/agent/app-tests", "-k", "${input:tests}"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug one test",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["-p", "no:cacheprovider", "/home/agent/app-tests", "-k", "${input:testName}"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug agent: run-agent --coder",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.py",
+      "args": ["--coder"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug agent: run-agent --plan",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.py",
+      "args": ["--plan"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug agent: run-agent",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.py",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ],
+  "inputs": [
+    {
+      // Debug one test: its name as run-tests prints it after FAIL, or any part of it.
+      "id": "testName",
+      "type": "promptString",
+      "description": "Test name, or part of it (copy it from run-tests, e.g. test_todo3_run_agent_counts_tools_not_model_calls)"
+    },
+    {
+      // The same names as the "Test:" comments above each TODO function.
+      "id": "tests",
+      "type": "pickString",
+      "description": "Which tests?",
+      "options": [
+        "todo1_resolve_in_workspace",
+        "todo1_read_file",
+        "todo1_description",
+        "todo2_write_file",
+        "todo2_description",
+        "todo3_run_agent",
+        "todo3_code",
+        "todo3_prompt",
+        "todo4_truncate",
+        "todo4_run_tests",
+        "todo4_run_command",
+        "todo4_description",
+        "todo4_code",
+        "todo5_plan",
+        "todo5_prompt",
+        "todo6_review_changes",
+        "todo6_parse_verdict",
+        "todo6_prompt",
+        "todo7_run"
+      ]
+    }
+  ]
+}

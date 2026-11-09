@@ -1,0 +1,8 @@
+<!-- Restores and builds on your own machine (e.g. the C# extension before you
+     reopen in the container) go to csharp/.artifacts instead of bin/obj in app/.
+     Inside the container /home/agent/Directory.Build.props takes over. -->
+<Project>
+  <PropertyGroup>
+    <ArtifactsPath>$(MSBuildThisFileDirectory).artifacts</ArtifactsPath>
+  </PropertyGroup>
+</Project>

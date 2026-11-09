@@ -1,0 +1,9 @@
+# Shared by all tracks: edit tools/shared/compose.build.yaml in the authoring repo, not this copy.
+# Builds the track image locally (before it is published, or to test Dockerfile changes):
+#   docker compose -f compose.yaml -f compose.build.yaml build
+# compose.yaml itself has no build section: VS Code Dev Containers would then run
+# "docker compose build", which Docker Compose on Windows rejects when VS Code's
+# working directory has a lowercase drive letter (fs.read privileges error).
+services:
+  seed:
+    build: .

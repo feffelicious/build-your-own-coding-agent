@@ -1,0 +1,47 @@
+#!/bin/sh
+# Runs the tests for every TODO (1-7). TODO 3 and 5-7 use a scripted model: no API key needed.
+#   run-tests                       all tests
+#   run-tests -Dtest='*#todo1*'     only the tests for TODO 1
+#   run-tests --full ...            Maven's complete output: stack traces, and the agent's trace from each test
+# Shows each failing test with its message, and a stack frame only where it is in your code.
+pom="$(dirname "$0")/../app-tests/pom.xml"
+if [ "${1:-}" = "--full" ]; then shift; mvn -o -f "$pom" test "$@" && echo "All selected tests passed."; exit; fi
+
+status=$(mktemp)
+{ mvn -q -o -f "$pom" test "$@" 2>&1; echo $? >"$status"; } | awk -v status="$status" '
+  function flush() { if (name != "") { print ""; print "FAIL  " name; if (msg != "") printf "%s", msg; if (at != "") print "      at " at } name = ""; msg = ""; at = "" }
+  { raw[++lines] = $0 }
+  /^\[ERROR\] \/home\/agent\/[^ ]+\.java:\[[0-9]+,[0-9]+\] / {     # compiler errors: once each, path from app/
+    line = $0; sub(/^\[ERROR\] \/home\/agent\/app\//, "", line); sub(/^\[ERROR\] \/home\/agent\//, "", line)
+    if (!seen[line]++) { print line; shown = 1 }; next }
+  /^\[ERROR\] codingagent\.[^ ]+ -- Time elapsed: .*<<< (FAILURE|ERROR)!$/ {
+    flush(); name = $2; sub(/^codingagent\./, "", name); mode = "first"; shown = 1; next }
+  /^\[ERROR\] Tests run: [0-9]+, Failures: [0-9]+, Errors: [0-9]+, Skipped: [0-9]+$/ {
+    flush(); mode = ""; t = $0; gsub(/[^0-9,]/, "", t); split(t, n, ","); total = n[1]; failed = n[2] + n[3]; skipped = n[4]; next }
+  /^$/ { if (mode != "") mode = ""; next }
+  mode == "first" { line = $0; mode = "msg"
+                    sub(/^org\.opentest4j\.AssertionFailedError: ?/, "", line); sub(/^java\.lang\.UnsupportedOperationException: /, "", line)
+                    sub(/^([a-z0-9_]+\.)+/, "", line)                # java.lang.NullPointerException: ... → NullPointerException: ...
+                    if (line != "") msg = msg "      " line "\n"; next }
+  mode == "msg" && /^\tat / { mode = "stack" }
+  mode == "msg" { line = $0; sub(/ ==> expected: <true> but was: <false>$/, "", line); if (line != "") msg = msg "      " line "\n"; next }
+  mode == "stack" { if (at == "" && match($0, /^\tat codingagent\.((tools|agent|support)\.[A-Za-z0-9_$]+|Main)\.[^(]+\([A-Za-z0-9_]+\.java:[0-9]+\)/)) {
+                      frame = substr($0, RSTART + 4, RLENGTH - 4)      # codingagent.tools.Tools.readFile(Tools.java:64)
+                      fn = frame; sub(/\(.*$/, "", fn); k = split(fn, part, ".")
+                      dir = ""; for (i = 1; i < k - 1; i++) dir = dir part[i] "/"
+                      file = frame; sub(/^.*\(/, "", file); sub(/\)$/, "", file); split(file, fl, ":")
+                      at = "src/main/java/" dir fl[1] ":" fl[2] " (" part[k] ")" }
+                    next }
+  END {
+    flush()
+    if (total != "") {
+      print ""
+      passed = total - failed - skipped
+      print failed " of " total " tests failed" (passed > 0 ? ", " passed " passed" : "") (skipped > 0 ? ", " skipped " skipped" : "") ". run-tests --full shows the stack traces."
+    } else if (!shown && (getline code < status) > 0 && code != 0) {
+      for (i = 1; i <= lines; i++) print raw[i]                   # a failure this filter does not know: show it all
+    }
+  }'
+code=$(cat "$status"); rm -f "$status"
+[ "$code" -eq 0 ] && echo "All selected tests passed."
+exit "$code"
