@@ -1,0 +1,48 @@
+# Shared by all tracks: edit tools/shared/compose.yaml in the authoring repo, not this copy.
+# The track image is published as ghcr.io/feffelicious/coding-agent-csharp:2026-11-09:
+#   docker compose pull
+# To build it locally instead (or to test a Dockerfile change), under the same name:
+#   docker compose -f compose.yaml -f compose.build.yaml build
+# IMAGE_ORG and IMAGE_TAG (in .env or the shell) point at another published image.
+name: coding-agent-csharp
+
+services:
+  proxy:
+    image: nginx:1.31.6-alpine
+    restart: unless-stopped   # nginx exits at start if DNS isn't up yet (e.g. Docker before Wi-Fi)
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}   # from .env on the host
+    volumes:
+      - ./proxy/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+
+  seed:
+    image: ghcr.io/${IMAGE_ORG:-feffelicious}/coding-agent-csharp:${IMAGE_TAG:-2026-11-09}
+    user: runner
+    volumes: [workspace:/workspace]
+    command: /usr/local/bin/seed-workspace
+
+  workshop:
+    image: ghcr.io/${IMAGE_ORG:-feffelicious}/coding-agent-csharp:${IMAGE_TAG:-2026-11-09}
+    user: agent
+    environment:
+      ANTHROPIC_BASE_URL: http://proxy:8080
+      ANTHROPIC_API_KEY: via-proxy
+    volumes:
+      - ./app:/home/agent/app
+      - ./app-tests:/home/agent/app-tests
+      - workspace:/workspace
+      # The same volume again, read-only, for browsing in VS Code: language extensions
+      # there build as agent, and files they made in /workspace would block the agent.
+      - workspace:/workspace-view:ro
+      - logs:/home/agent/logs
+    cpus: 2
+    mem_limit: 4g
+    depends_on:
+      proxy: { condition: service_started }
+      seed: { condition: service_completed_successfully }
+    init: true   # reaps processes that commands leave behind (PID 1 is sleep otherwise)
+    command: sleep infinity
+
+volumes:
+  workspace:
+  logs:

@@ -1,0 +1,26 @@
+{
+  "name": "coding-agent-python",
+  "dockerComposeFile": "../compose.yaml",
+  // The track image is published; Docker downloads it the first time if "docker compose pull"
+  // hasn't already (README, setup). No build here: see compose.build.yaml.
+  "service": "workshop",
+  "workspaceFolder": "/home/agent/app",
+  "remoteUser": "agent",
+  "shutdownAction": "stopCompose",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python"],
+      "settings": {
+        // You write the agent yourself today: no AI chat or ghost-text completions
+        // (Copilot or any other provider). Normal IntelliSense stays on.
+        // chat.disableAIFeatures is also in app/.vscode/settings.json and the
+        // workspace file, in case VS Code doesn't take it from here.
+        "chat.disableAIFeatures": true,
+        "editor.inlineSuggest.enabled": false,
+        "github.copilot.enable": { "*": false },
+        // Source Control runs git as runner: see /usr/local/bin/git-as-runner.
+        "git.path": "/usr/local/bin/git-as-runner"
+      }
+    }
+  }
+}

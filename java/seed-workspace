@@ -1,0 +1,18 @@
+#!/bin/sh
+# Runs as runner in the one-shot seed service. Fills an empty /workspace with the
+# exercise project and commits it as "seed". A non-empty workspace is left alone.
+set -eu
+if [ -n "$(ls -A /workspace 2>/dev/null)" ]; then
+  echo "seed: /workspace is not empty, leaving it as it is"
+  exit 0
+fi
+cp -R /opt/workspace-seed/. /workspace/
+# Group "work" (agent and runner) must be able to edit every file.
+chmod -R g+rwX /workspace
+cd /workspace
+git init -q -b main
+git config user.name "Workshop Seed"
+git config user.email "seed@workshop.invalid"
+git add -A
+git commit -q -m seed
+echo "seed: /workspace created"
