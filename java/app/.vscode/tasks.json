@@ -1,0 +1,109 @@
+{
+  // Start the tests or the agent paused, waiting for the debugger on port 5005.
+  // The debug configurations in launch.json run these first, then attach.
+  // How VS Code tracks them: within 5 seconds the task must signal that it started
+  // (or F5 asks "Debug Anyway?"); a line matching beginsPattern does that. It is
+  // ready when a later line matches endsPattern. Maven prints nothing that early,
+  // so each task echoes its own "Starting" line first; the JVM's "Listening for
+  // transport" line ends it.
+  // A line matching beginsPattern is never checked against endsPattern, so the
+  // two must not overlap. The pattern never matches, but VS Code ignores the
+  // whole matcher unless it has file, line and message groups.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "tests: wait for debugger",
+      "type": "shell",
+      "command": "echo 'Starting the tests; the debugger attaches when they wait on port 5005.' && mvn -q -o -f /home/agent/app-tests/pom.xml test '-Dtest=*#${input:tests}*' -Dmaven.surefire.debug",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "java-debug",
+        "pattern": { "regexp": "^__never__(.)(.)(.)$", "file": 1, "line": 2, "message": 3 },
+        "background": { "beginsPattern": "^Starting the ", "endsPattern": "Listening for transport" }
+      }
+    },
+    {
+      // The name as run-tests prints it (FileToolTests.todo1ReadFile...) or any part of the method name.
+      "label": "one test: wait for debugger",
+      "type": "shell",
+      "command": "echo 'Starting the test; the debugger attaches when it waits on port 5005.' && t=$(echo '${input:testName}' | sed 's/.*[.#]//') && mvn -q -o -f /home/agent/app-tests/pom.xml test \"-Dtest=*#*$t*\" -Dmaven.surefire.debug",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "java-debug",
+        "pattern": { "regexp": "^__never__(.)(.)(.)$", "file": 1, "line": 2, "message": 3 },
+        "background": { "beginsPattern": "^Starting the ", "endsPattern": "Listening for transport" }
+      }
+    },
+    {
+      "label": "agent --coder: wait for debugger",
+      "type": "shell",
+      "command": "echo 'Starting the agent; the debugger attaches when it waits on port 5005.' && run-agent --coder",
+      "options": { "cwd": "${workspaceFolder}", "env": { "AGENT_DEBUG": "1" } },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "java-debug",
+        "pattern": { "regexp": "^__never__(.)(.)(.)$", "file": 1, "line": 2, "message": 3 },
+        "background": { "beginsPattern": "^Starting the ", "endsPattern": "Listening for transport" }
+      }
+    },
+    {
+      "label": "agent --plan: wait for debugger",
+      "type": "shell",
+      "command": "echo 'Starting the agent; the debugger attaches when it waits on port 5005.' && run-agent --plan",
+      "options": { "cwd": "${workspaceFolder}", "env": { "AGENT_DEBUG": "1" } },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "java-debug",
+        "pattern": { "regexp": "^__never__(.)(.)(.)$", "file": 1, "line": 2, "message": 3 },
+        "background": { "beginsPattern": "^Starting the ", "endsPattern": "Listening for transport" }
+      }
+    },
+    {
+      "label": "agent: wait for debugger",
+      "type": "shell",
+      "command": "echo 'Starting the agent; the debugger attaches when it waits on port 5005.' && run-agent",
+      "options": { "cwd": "${workspaceFolder}", "env": { "AGENT_DEBUG": "1" } },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "java-debug",
+        "pattern": { "regexp": "^__never__(.)(.)(.)$", "file": 1, "line": 2, "message": 3 },
+        "background": { "beginsPattern": "^Starting the ", "endsPattern": "Listening for transport" }
+      }
+    }
+  ],
+  "inputs": [
+    {
+      // Debug one test: its name as run-tests prints it after FAIL, or any part of it.
+      "id": "testName",
+      "type": "promptString",
+      "description": "Test name, or part of it (copy it from run-tests, e.g. AgentTests.todo3RunAgentCountsToolsNotModelCalls)"
+    },
+    {
+      // The same names as the "Test:" comments above each TODO method.
+      "id": "tests",
+      "type": "pickString",
+      "description": "Which tests?",
+      "options": [
+        "todo1ResolveInWorkspace",
+        "todo1ReadFile",
+        "todo1Description",
+        "todo2WriteFile",
+        "todo2Description",
+        "todo3RunAgent",
+        "todo3Code",
+        "todo3Prompt",
+        "todo4Truncate",
+        "todo4RunTests",
+        "todo4RunCommand",
+        "todo4Description",
+        "todo4Code",
+        "todo5Plan",
+        "todo5Prompt",
+        "todo6ReviewChanges",
+        "todo6ParseVerdict",
+        "todo6Prompt",
+        "todo7Run"
+      ]
+    }
+  ]
+}

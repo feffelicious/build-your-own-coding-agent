@@ -1,0 +1,7 @@
+#!/bin/sh
+# VS Code's git in the dev container ("git.path" in devcontainer.json): runs git as runner,
+# the user the agent's commands run as. /workspace and its .git/config belong to runner, so
+# anything the agent's commands put there (hooks, filters, fsmonitor, a pager) runs with
+# runner's rights, never yours. Your own git refuses /workspace for the same reason (no
+# safe.directory): use in-workspace git ... there.
+exec sudo -u runner timeout 120 git "$@"

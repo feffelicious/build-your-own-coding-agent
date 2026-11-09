@@ -1,0 +1,49 @@
+#!/bin/sh
+# Runs the tests for every TODO (1-7). TODO 3 and 5-7 use a scripted model: no API key needed.
+#   run-tests                    all tests
+#   run-tests --filter Todo1     only the tests for TODO 1
+#   run-tests --full ...         dotnet test's complete output, stack traces and all
+# Shows each failing test with its message, and a stack frame only where it is in your code.
+tests="$(dirname "$0")/../app-tests"
+if [ "${1:-}" = "--full" ]; then shift; exec dotnet test "$tests" "$@"; fi
+
+status=$(mktemp)
+{ dotnet test "$tests" -tl:off -v q --nologo --logger "console;verbosity=normal" "$@" 2>&1; echo $? >"$status"; } | awk -v status="$status" '
+  function flush() { if (name != "") { print ""; print "FAIL  " name; if (msg != "") printf "%s", msg; if (at != "") print "      at " at } name = ""; msg = ""; at = "" }
+  { raw[++lines] = $0 }
+  /^\[xUnit\.net / { next }
+  / error [A-Z]+[0-9]*: / {                       # compiler errors: once each, path from app/
+    line = $0; sub(/ \[\/home\/agent\/[^]]*\]$/, "", line); sub(/^\/home\/agent\//, "", line)
+    if (!seen[line]++) { print line; shown = 1 }; next }
+  /^  Failed [^ ]/ { flush(); shown = 1; name = $2; sub(/^CodingAgent\.Tests\./, "", name); mode = ""; next }
+  /^  Error Message:$/ { mode = "msg"; first = 1; next }
+  /^  Stack Trace:$/ { mode = "stack"; next }
+  /^  [A-Z][A-Za-z ]+ Messages:$/ { mode = ""; next }     # captured output: --full shows it
+  /^Total tests: / { flush(); mode = ""; total = $3; next }
+  /^ +Passed: [0-9]/ { passed = $2; next }
+  /^ +Failed: [0-9]/ { failed = $2; next }
+  /^ +Skipped: [0-9]/ { skipped = $2; next }
+  /^$/ { if (mode == "stack") mode = ""; next }
+  mode == "msg" { line = $0; sub(/^   /, "", line)
+                  if (first && match(line, /^[A-Za-z0-9_.]+Exception : /)) {   # System.IO.XException : msg → XException: msg
+                    k = split(substr(line, 1, RLENGTH - 3), part, "."); rest = substr(line, RLENGTH + 1)
+                    line = part[k] == "NotImplementedException" ? rest : part[k] ": " rest }
+                  first = 0
+                  if (line != "") msg = msg "      " line "\n"; next }
+  mode == "stack" { if (at == "" && match($0, /in \/home\/agent\/app\/[^ ]+:line [0-9]+/)) {
+                      where = substr($0, RSTART + 19, RLENGTH - 19); sub(/:line /, ":", where)
+                      fn = $0; sub(/^ *at /, "", fn); sub(/\(.*$/, "", fn); n = split(fn, part, "."); at = where " (" part[n] ")" }
+                    next }
+  /^No test matches/ { print; shown = 1; next }
+  END {
+    flush()
+    if (total != "") {
+      print ""
+      if (failed + 0 == 0) print "All " total " tests passed."
+      else print failed " of " total " tests failed" (passed + 0 > 0 ? ", " passed " passed" : "") (skipped + 0 > 0 ? ", " skipped " skipped" : "") ". run-tests --full shows the stack traces."
+    } else if (!shown && (getline code < status) > 0 && code != 0) {
+      for (i = 1; i <= lines; i++) print raw[i]                   # a failure this filter does not know: show it all
+    }
+  }'
+code=$(cat "$status"); rm -f "$status"
+exit "$code"

@@ -1,0 +1,20 @@
+{
+  // Build steps the debug configurations in launch.json run first.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build agent",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["build", "${workspaceFolder}/CodingAgent.csproj", "-nologo", "-v", "quiet"],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "build tests",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["build", "/home/agent/app-tests/CodingAgent.Tests.csproj", "-nologo", "-v", "quiet"],
+      "problemMatcher": "$msCompile"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+<!-- The solution C# Dev Kit loads (coding-agent.code-workspace points at it): only the app, not the read-only /workspace-view. -->
+<Solution>
+  <Project Path="CodingAgent.csproj" />
+</Solution>
