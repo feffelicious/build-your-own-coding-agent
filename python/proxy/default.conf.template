@@ -1,0 +1,19 @@
+# The only place the real API key exists. The official nginx image substitutes
+# ${ANTHROPIC_API_KEY} from the proxy container's environment at startup.
+server {
+  listen 8080;
+  location = /v1/messages {
+    limit_except POST { deny all; }
+    proxy_pass https://api.anthropic.com;
+    proxy_ssl_server_name on;
+    # Check that it really is api.anthropic.com before the key goes out (nginx doesn't by default).
+    proxy_ssl_verify on;
+    proxy_ssl_verify_depth 3;
+    proxy_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
+    proxy_read_timeout 300s;   # a long model answer can take more than nginx's default 60 s
+    proxy_set_header Host api.anthropic.com;
+    proxy_set_header x-api-key "${ANTHROPIC_API_KEY}";   # quoted: an empty key (none yet) still starts
+    proxy_buffering off;
+  }
+  location / { return 403; }
+}

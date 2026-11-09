@@ -1,0 +1,19 @@
+#!/bin/sh
+# Runs a command the way the agent's run_tests and run_command do: as runner, in /workspace
+# (or in the folder you are in, if that is inside /workspace; in the read-only
+# view /workspace-view, the same folder in /workspace).
+#   in-workspace pytest -q
+#   TIMEOUT=1800 in-workspace ...      default limit: 600 seconds
+# Run the agent's project like this, not as yourself: files you create there as
+# agent (build output, caches) could not be changed by the agent afterwards.
+if [ $# -eq 0 ]; then
+  echo "Usage: in-workspace <command> [args...]   e.g. in-workspace pytest -q" >&2
+  exit 2
+fi
+case "$PWD/" in
+  /workspace/*) ;;
+  /workspace-view/*) cd "/workspace${PWD#/workspace-view}" ;;
+  *) cd /workspace ;;
+esac
+# --foreground lets programs that read the keyboard do so.
+exec sudo -u runner timeout --foreground "${TIMEOUT:-600}" "$@"

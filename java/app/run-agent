@@ -1,0 +1,27 @@
+#!/bin/sh
+# Builds and runs the agent.  Usage: run-agent [--coder | --plan] [task-file | --task "text"]   (default: task.md)
+# With AGENT_DEBUG=1 the agent waits for a debugger on port 5005 (used by .vscode/launch.json).
+# --task "text" gives the task as text instead of a file.
+for arg do
+  shift
+  if [ "${want_task:-}" = 1 ]; then
+    rm -f "${TMPDIR:-/tmp}"/run-agent-task.*   # the previous run's task text
+    file="$(mktemp "${TMPDIR:-/tmp}/run-agent-task.XXXXXX")"; printf '%s\n' "$arg" > "$file"; set -- "$@" "$file"; want_task=0
+  elif [ "$arg" = --task ]; then want_task=1
+  else set -- "$@" "$arg"; fi
+done
+if [ "${want_task:-}" = 1 ]; then echo 'Usage: run-agent [--coder | --plan] --task "what to do"' >&2; exit 2; fi
+# No task file given: the app's task.md, wherever you run this from.
+has_file=no
+for arg do case "$arg" in --*) ;; *) has_file=yes ;; esac; done
+[ "$has_file" = yes ] || set -- "$@" "$(dirname "$0")/task.md"
+# A run on a workspace an earlier run changed sees those changes (a Planner may find nothing
+# left to do): say so. reset-workspace starts fresh.
+if [ -n "$(in-workspace git status --porcelain 2>/dev/null)" ]; then
+  echo "Note: the workspace still has changes from an earlier run, and the agent will see them. For a fresh start: reset-workspace"
+fi
+dir="$(dirname "$0")"
+mvn -q -o -f "$dir/pom.xml" compile dependency:build-classpath -Dmdep.outputFile=target/classpath.txt || exit 2
+debug=""
+[ -n "${AGENT_DEBUG:-}" ] && debug="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=localhost:5005"
+exec java $debug -cp "$dir/target/classes:$(cat "$dir/target/classpath.txt")" codingagent.Main "$@"

@@ -1,0 +1,32 @@
+// Shared by all tracks: edit tools/shared/app/coding-agent.code-workspace in the authoring repo, not this copy.
+// Open it in the container: VS Code may offer "Open Workspace" when the container starts; otherwise click this
+// file, then "Open Workspace" at the bottom right. It shows your code next to a read-only view of /workspace, the
+// project the agent works on; Source Control lists every file the agent changed.
+// Read-only on purpose: language extensions build what they see, and as you (agent) that would block the agent.
+{
+  "folders": [
+    { "path": ".", "name": "app" },
+    { "path": "/workspace-view", "name": "workspace (read-only)" }
+  ],
+  "settings": {
+    // You write the agent yourself today: no AI chat or completions.
+    "chat.disableAIFeatures": true,
+    // Keep the language extensions out of the read-only view (their restores there can only fail).
+    // C# Dev Kit: load only the app's solution. Java: don't import the view's Maven project
+    // (the view's root folder itself, and everything under it).
+    // Each track's extension ignores the other track's setting.
+    "dotnet.defaultSolution": "/home/agent/app/CodingAgent.slnx",
+    "java.import.exclusions": [
+      "**/node_modules/**",
+      "**/.metadata/**",
+      "**/archetype-resources/**",
+      "**/META-INF/maven/**",
+      "/workspace-view",
+      "/workspace-view/**"
+    ],
+    // Java: no prompts to upgrade the JDK or dependencies (the course pins them).
+    "java.dependency.enableDependencyCheckup": false,
+    // Java (Red Hat): no usage data, and no prompt asking for it.
+    "redhat.telemetry.enabled": false
+  }
+}
